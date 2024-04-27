@@ -381,14 +381,14 @@ function STEC(core, control, Cd)
 
           --system.print(tostring(self.direction))
 		    local current = self.localVelocity:len() * self.mass
-            local scale = nil
+            local scale = 1
             --if ship.localVelocity:len() > 10 then
             --    scale = self.gravityFollowSpeed * math.min(math.max(current / self.fMax, 0.1), 1) * 10
             --else
             --    scale = self.gravityFollowSpeed
             --end
             local gFollow = (self.world.up:cross(-self.nearestPlanet:getGravity(construct.getWorldPosition())))
-            local scale = 1
+            -- if self.elevatorActive then gFollow = (self.world.up:cross(-self.nearestPlanet:getGravity(self.baseLoc))) end
             if self.pocket then
                 if self.direction.x < 0  then
                     scale = 0.25
@@ -425,11 +425,9 @@ function STEC(core, control, Cd)
             local destination = vec3(0,0,0)
             local verticalSpeedLimit
 
-
             local dampen = 1
 
             --if self.world.velocity:len() < 55.555 then
-
             --end
 
             if self.altitude <= (self.atmosphereThreshold + self.brakeDistance) or self.altitude <= self.brakeDistance then
@@ -440,9 +438,7 @@ function STEC(core, control, Cd)
             if  (self.brakeDistance + brakeBuffer) >= math.abs(deltaAltitude) then
                 verticalSpeedLimit = self.approachSpeed
             end
-
             --system.print("self.deviation: "..self.deviation)
-
 
             local deviationThreshold = self.deviationThreshold
             if self.deviated or self.world.velocity:len() < 1 then deviationThreshold = 0.05 end

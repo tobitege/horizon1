@@ -48,7 +48,7 @@ end
 function deltaSum(sum, delta)
    local deltaX = 0
    local deltaY = 0
-   
+
    if (sum.y + delta.y) <= 0 then deltaY = 0
    elseif (sum.y + delta.y) >= (1250 / mouseSensitivity) then deltaY = (1250 / mouseSensitivity)
    else deltaY = sum.y + delta.y
@@ -60,7 +60,7 @@ end
 function updateAR()
 	local mouseDelta = vec2(system.getMouseDeltaX(),system.getMouseDeltaY())
 	mouseDeltaSum = deltaSum(mouseDeltaSum,mouseDelta)
-	playerQ = quat(unit.getMasterPlayerRelativeOrientation())
+	playerQ = 1-- quat(unit.getMasterPlayerRelativeOrientation())
 	forwardX = (playerQ * vec3(core.getConstructOrientationForward()))
 	ship.viewY = scaleViewBoundsY(mouseDeltaSum.y)
 	ship.viewX = scaleViewBoundsX(forwardX.x)

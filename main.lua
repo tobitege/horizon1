@@ -36,43 +36,35 @@ function Unit.onStart()
 	Events.Flush.Add(ship.apply)
 	Events.Update.Add(SHUD.Update)
 	getFuelRenderedHtml()
-	system.print("Screen: "..tostring(screen))
-	if screen ~= nil then
+	if screen then
 		manualControlSwitch()
 		system.print("Altitude: "..helios:closestBody(construct.getWorldPosition()):getAltitude(construct.getWorldPosition()))
 		ship.altitudeHold = helios:closestBody(construct.getWorldPosition()):getAltitude(construct.getWorldPosition())
 		ship.baseAltitude = helios:closestBody(ship.customTarget):getAltitude(ship.customTarget)
+		elevatorScreen = ElevatorScreen
 		--ship.elevatorActive = true
-	end
-	--if next(manualSwitches) ~= nil then manualSwitches[1].activate() end
-	if screen == nil then
+	else
 		ship.verticalLock = false
 		ship.intertialDampening = true
 		ship.elevatorActive = false
 		config.manualControl = not config.manualControl
 		manualControlSwitch()
 	end
-	if screen ~= nil then elevatorScreen = ElevatorScreen end
-	system.print("ElevatorScreen: "..tostring(elevatorScreen))
-	local sName = ""
-	local coreMass = core.getMass()
-	if emitter ~= nil then
+	if system.showHelper then system.showHelper(false) end
+	--if next(manualSwitches) ~= nil then manualSwitches[1].activate() end
+	if emitter and type(emitter.getRange) == "function" then
 		system.print("Emitter Range: "..emitter.getRange())
 	end
-	if activateFFonStart then
-		if next(manualSwitches) ~= nil then
-			for _, sw in ipairs(manualSwitches) do
-				sw.activate()
-			end
+	if activateFFonStart and manualSwitches and next(manualSwitches) ~= nil then
+		for _, sw in ipairs(manualSwitches) do
+			sw.activate()
 		end
 	end
 
-	shipName = construct.getName()
-	system.print(player.getId())
 	unit.setTimer("SHUDRender", 0.02)
 	unit.setTimer("FuelStatus", 3)
 	unit.setTimer("DockingTrigger", 1)
-	if laser ~= nil then laser.deactivate() end
+	if laser then laser.deactivate() end
 
 	system.print([[Horizon 1.0.1.13]])
 	if showDockingWidget then
@@ -82,12 +74,13 @@ function Unit.onStart()
 	end
 
 	if setBaseOnStart then setBase() end
-	--StepOne.Start()
+	-- shipName = construct.getName()
+	-- system.print(player.getId())
 	--ioScheduler.queueData(config)
 end
 
 function Unit.onStop()
-	if next(manualSwitches) ~= nil then
+	if manualSwitches and next(manualSwitches) then
 		for _, sw in ipairs(manualSwitches) do
 			sw.deactivate()
 		end
@@ -95,10 +88,11 @@ function Unit.onStop()
 	config.shutDown = true
 	if screen then screen.setScriptInput(serialize(config)) end
 	system.showScreen(false)
-	if laser ~= nil then laser.deactivate() end
-
-	for _, sw in ipairs(forceFields) do
-		sw.deactivate()
+	if laser then laser.deactivate() end
+	if forceFields and next(forceFields) then
+		for _, sw in ipairs(forceFields) do
+			sw.deactivate()
+		end
 	end
 end
 
@@ -128,8 +122,6 @@ function Unit.onTimer(timer)
 		elseif config.manualControl then
 			if SHUD then SHUD.Render() end
 			if enableARReticle then updateAR() end
-		else
-
 		end
 	end
 	if timer == "FuelStatus" then
@@ -141,8 +133,11 @@ function Unit.onTimer(timer)
 		if telemeter ~= nil then telDistance = telemeter.raycast().distance end
 		if ship.dockingClamps then
 			if laser ~= nil then laser.activate() end
-			if telemeter ~= nil and telDistance > 0 and telDistance < 1 then
-				if ship.autoShutdown and not config.manualControl then system.print(ship.altitude) unit.exit() end
+			if telemeter and telDistance > 0 and telDistance < 1 then
+				if ship.autoShutdown and not config.manualControl then
+					--system.print(ship.altitude)
+					unit.exit()
+				end
 			end
 		end
 	end

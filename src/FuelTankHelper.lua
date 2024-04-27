@@ -1,5 +1,5 @@
 --@class FuelTankHelper
-system.print("ContainerOp"..ContainerOptimization)
+-- system.print("ContainerOpt. "..ContainerOptimization)
 fuelTanks = {}
 FuelMass = {}
 FuelTime = {}
@@ -15,65 +15,56 @@ fuelTypes = {
   },
 }
 local function calcAtmoVolume(baseCap)
-  if fuelTankHandlingAtmo > 0 then
-    return baseCap + (baseCap * (fuelTankHandlingAtmo * 0.2))
-  else
-    return baseCap
-  end
+	if fuelTankHandlingAtmo > 0 then
+		return baseCap + (baseCap * (fuelTankHandlingAtmo * 0.2))
+	end
+	return baseCap
 end
 local function calcSpaceVolume(baseCap)
-  if fuelTankHandlingSpace > 0 then
-    return baseCap + (baseCap * (fuelTankHandlingSpace * 0.2))
-  else
-    return baseCap
-  end
+	if fuelTankHandlingSpace > 0 then
+		return baseCap + (baseCap * (fuelTankHandlingSpace * 0.2))
+	end
+	return baseCap
 end
 local function calcMaxMass(cap, type)
-  local maxMass = cap * fuelTypes[type].density
-
-  local adjustedMaxMass = maxMass
-  if ContainerOptimization > 0 then adjustedMaxMass = maxMass - (maxMass * ContainerOptimization * 0.05) end
-  if FuelTankOptimization > 0 then adjustedMaxMass = adjustedMaxMass - (maxMass * FuelTankOptimization * 0.05) end
-
-  return adjustedMaxMass
+	local maxMass = cap * fuelTypes[type].density
+	local adjustedMaxMass = maxMass
+	if ContainerOptimization > 0 then adjustedMaxMass = maxMass - (maxMass * ContainerOptimization * 0.05) end
+	if FuelTankOptimization > 0 then adjustedMaxMass = adjustedMaxMass - (maxMass * FuelTankOptimization * 0.05) end
+	return adjustedMaxMass
 end
 function normalizeHp(type,hp)
-  local adjHp = 0
-
-  if type == "atmo" then 
-    if hp >= 50 and hp < 163 then adjHp = 50
-    elseif hp >= 163 and hp < 1315 then adjHp = 163
-    elseif hp >= 1315 and hp < 10461 then adjHp = 1315
-    elseif hp >= 10461 then adjHp = 10461 end
-  elseif type == "space" then
-    if hp >= 50 and hp < 187 then adjHp = 50
-    elseif hp >= 187 and hp < 1496 then adjHp = 187
-    elseif hp >= 1496 and hp < 15933 then adjHp = 1496
-    elseif hp >= 15933 then adjHp = 15933 end
-  elseif type == "rocket" then
-    if hp >= 366 and hp < 736 then adjHp = 366
-    elseif hp >= 736 and hp < 6231 then adjHp = 736
-    elseif hp >= 6231 and hp < 68824 then adjHp = 6231
-    elseif hp >= 68824 then adjHp = 68824 end
-  end
-
-  return adjHp
+	local adjHp = 0
+	if type == "atmo" then
+		if hp >= 50 and hp < 163 then adjHp = 50
+		elseif hp >= 163 and hp < 1315 then adjHp = 163
+		elseif hp >= 1315 and hp < 10461 then adjHp = 1315
+		elseif hp >= 10461 then adjHp = 10461 end
+	elseif type == "space" then
+		if hp >= 50 and hp < 187 then adjHp = 50
+		elseif hp >= 187 and hp < 1496 then adjHp = 187
+		elseif hp >= 1496 and hp < 15933 then adjHp = 1496
+		elseif hp >= 15933 then adjHp = 15933 end
+	elseif type == "rocket" then
+		if hp >= 366 and hp < 736 then adjHp = 366
+		elseif hp >= 736 and hp < 6231 then adjHp = 736
+		elseif hp >= 6231 and hp < 68824 then adjHp = 6231
+		elseif hp >= 68824 then adjHp = 68824 end
+	end
+	return adjHp
 end
 function normalizeHpAtmo(hp)
-  
 end
 function normalizeHpSpace(hp)
   -- 187
   -- 1496
   -- 15933
-  
 end
 function normalizeHpRocket(hp)
   -- 366
   -- 736
   -- 6231
   -- 68824
-  
 end
 fuelTankSpecsByMaxHP = {
   -- Atmo Tanks
@@ -182,7 +173,7 @@ local function isNAN(value)
 end
 
 function disp_time(time)
-  if isINF(time) or isNAN(time) then return "inf" end
+  if isINF(time) or isNAN(time) then return "-:-" end
   local days = math.floor(time/86400)
   local hours = math.floor(math.fmod(time, 86400)/3600)
   local minutes = math.floor(math.fmod(time,3600)/60)
@@ -203,10 +194,10 @@ local unpack = table.unpack
 function fuelUsed(period)
 	local t = {}
 	function sum(a, ...)
-		if a then 
-            return a-sum(...) 
-        else 
-            return 0 
+		if a then
+            return a-sum(...)
+        else
+            return 0
         end
 	end
 	function average(n)
@@ -216,8 +207,6 @@ function fuelUsed(period)
 	end
 	return average
 end
-
-
 
 function getFuelSituation()
   local tanks = {
@@ -234,13 +223,12 @@ function getFuelSituation()
       specs = specs,
     })
   end
-
   return tanks
 end
 
 function getFuelTankSpecs(fuelTankType, fuelTankId)
   local maxHP = math.floor(core.getElementMaxHitPointsById(fuelTankId))
-  system.print(fuelTankType.."........"..maxHP)
+--   system.print(fuelTankType.." ... "..maxHP)
   return fuelTankSpecsByMaxHP[fuelTankType]['_' .. normalizeHp(fuelTankType,maxHP)]
 end
 
@@ -268,12 +256,9 @@ function getFuelTime(fuelTankId)
   local fuelTimeFormatted = disp_time(fuelTime)
   FuelTime[fuelTankId] = system.getArkTime()
   return fuelTimeFormatted
-
 end
 
 function getFuelTanks()
-  
-
   local elementIds = core.getElementIdList()
   for k, elementId in pairs(elementIds) do
     local elementType = core.getElementDisplayNameById(elementId)
@@ -292,14 +277,14 @@ function getFuelTanks()
     end
   end
 
-  for _, v in ipairs(fuelTankSpecsByMaxHP) do
-    --system.print("Fuel Tank: "..v)
-    for k,t in ipairs(v) do
-      for x,y in pairs(t) do
-        --system.print("Capacity: "..y.capacity())
-      end
-    end
-  end
+--   for _, v in ipairs(fuelTankSpecsByMaxHP) do
+--     --system.print("Fuel Tank: "..v)
+--     for k,t in ipairs(v) do
+--       for x,y in pairs(t) do
+--         --system.print("Capacity: "..y.capacity())
+--       end
+--     end
+--   end
 end
 
 getFuelTanks()
