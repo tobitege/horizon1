@@ -21,21 +21,21 @@ function getElements()
       if class == "CoreUnitDynamic" or class == "CoreUnitStatic" or class == "CoreUnitSpace" then
         core = var
       end
-      
+
       if class == "AtmoFuelContainer" or class == "SpaceFuelContainer" then
         var.showWidget()
       end
-      
+
       if class == "WarpDriveUnit" then
         warpDrive = var
         var.showWidget()
       end
-      
+
       if class == "RadarPvPAtmospheric" then
         radarUnitAtmo = var
         radarUnitAtmo.showWidget()
       end
-      
+
       if class == "RadarPvPSpace" then
         radarUnitSpace = var
         radarUnitSpace.showWidget()
@@ -44,13 +44,12 @@ function getElements()
       if class == "DataBankUnit" then
         flightModeDb = var
       end
-      
+
       if class == "AntiGravityGeneratorUnit" then
         antigrav = var
       end
       if class == "ManualSwitchUnit" then
         --manualSwitch = var
-        
         table.insert(manualSwitches, var)
       end
       if class == "ForceFieldUnit" then
@@ -74,6 +73,3 @@ function getElements()
 end
 
 getElements()
-
-
-

@@ -9,7 +9,7 @@ will interrupt default send and to send queued data.
 
 IOScheduler = (function()
     local self = {}
-    
+
     self.defaultData = nil
     self.currentTask = nil
     self.taskQueue = {}
@@ -21,7 +21,7 @@ IOScheduler = (function()
         output = screen.getScriptOutput()
         screen.clearScriptOutput()
         if output ~= "ack" then
-            if output ~= "" then
+            if output and output ~= "" then
                 handleOutput.Read(output)
             end
             coroutine.yield()
@@ -35,10 +35,10 @@ IOScheduler = (function()
         if #self.taskQueue == 0 then
             --Send default table
             if self.defaultData ~= nil then
-                   self.currentTask = coroutine.create(function()
-                       self.send(self.defaultData)
-                   end)
-            coroutine.resume(self.currentTask)
+				self.currentTask = coroutine.create(function()
+						self.send(self.defaultData)
+					end)
+            	coroutine.resume(self.currentTask)
             end
         else
             --Iterate over self.taskQueue and send each to screen
@@ -54,9 +54,10 @@ IOScheduler = (function()
             coroutine.resume(self.currentTask)
         end
     end
-    
+
     --Add to system.update()
     function self.update()
+		if not screen then system.print("No screen found"); return end
         if self.currentTask then
             if coroutine.status(self.currentTask) ~= "dead" then
                 coroutine.resume(self.currentTask)
@@ -67,42 +68,45 @@ IOScheduler = (function()
             self.runQueue()
         end
     end
-    
+
     return self
 end)()
 
 HandleOutput = (function()
     local self = {}
     function self.Read(output)
-        --system.print("handleOutput.Read(): "..output)
-        if output ~= nil and output ~= "" then
-            if type(output) == "string" then
-                --system.print(output)
-                local s = deserialize(output)
-
-                if s.dataType == "config" then
-                    config = s
-                    stats.data.target = config.targetAlt
-                    self.Execute()
-                elseif s.updateReq then
-                    ioScheduler.queueData(config)
-                else
-                    system.print(tostring(s))
-                end
-            end
-            
+system.print("handleOutput.Read(): "..output)
+		if type(output) ~= "string" or output == "" then
+			-- system.print("[E] handleOutput: "..tostring(output));
+			return
+		end
+		local s = deserialize(output)
+		if s.dataType == "config" then
+			config = s
+			local delta = tonumber(config.delta)
+			if delta ~= nil then
+				config.targetAlt = ship.altitude + delta
+				stats.data.target = config.targetAlt
+			else
+				stats.data.target = config.targetAlt
+			end
+			self.Execute()
+		elseif s.updateReq then
+			ioScheduler.queueData(config)
+		else
+			system.print(tostring(s))
         end
     end
 
     function self.Execute()
         ship.baseAltitude = helios:closestBody(ship.customTarget):getAltitude(ship.customTarget)
-        
+
         ship.altitudeHold = config.targetAlt
-        
+
         if config.estop then
-            
-            ship.altitudeHold = 0
+            config.delta = nil
             config.targetAlt = 0
+            ship.altitudeHold = 0
             ship.verticalLock = false
             ship.elevatorActive = false
             ship.brake = true
@@ -112,7 +116,7 @@ HandleOutput = (function()
         else
             ship.brake = false
         end
-        if ship.altitudeHold ~= 0 then
+        if ship.altitudeHold and ship.altitudeHold ~= 0 then
             ship.elevatorActive = true
             system.print("Alt diff: "..(config.targetAlt - ship.baseAltitude))
             ship.targetDestination = moveWaypointZ(ship.customTarget, config.targetAlt - ship.baseAltitude)
@@ -122,6 +126,7 @@ HandleOutput = (function()
             config.setBaseReq = false
             ioScheduler.queueData(config)
         end
+        config.elevation = ship.altitude
         --if config.updateReq then
         --    config.updateReq = false
         --    ioScheduler.queue(config)

@@ -5,26 +5,28 @@ local vec3 = require('cpml/vec3')
 local concat = table.concat
 local sFormat = string.format
 -- Libs and helper functions
-local function internalSerialize(v,tC,t) local check = type(v) local intSerial=internalSerialize if check=='table' then t[tC]='{' local tempC=tC+1 if #v==0 then for k,e in pairs(v) do if type(k)~='number' then t[tempC]=k t[tempC+1]='=' tempC=tempC+2 else t[tempC]='[' t[tempC+1]=k t[tempC+2]=']=' tempC=tempC+3 end tempC=intSerial(e,tempC,t) t[tempC]=',' tempC=tempC+1 end else for k,e in pairs(v) do tempC=intSerial(e,tempC,t) t[tempC]=',' tempC=tempC+1 end end if tempC==(tC+1) then t[tempC]='}' return tempC+1 else t[tempC-1]='}' return tempC end elseif check=='string' then t[tC]=sFormat("%q",v) return tC+1 elseif check=='number' then t[tC]=tostring(v) return tC+1 else t[tC]=v and 'true' or 'false' return tC+1 end end 
+local function internalSerialize(v,tC,t) local check = type(v) local intSerial=internalSerialize if check=='table' then t[tC]='{' local tempC=tC+1 if #v==0 then for k,e in pairs(v) do if type(k)~='number' then t[tempC]=k t[tempC+1]='=' tempC=tempC+2 else t[tempC]='[' t[tempC+1]=k t[tempC+2]=']=' tempC=tempC+3 end tempC=intSerial(e,tempC,t) t[tempC]=',' tempC=tempC+1 end else for k,e in pairs(v) do tempC=intSerial(e,tempC,t) t[tempC]=',' tempC=tempC+1 end end if tempC==(tC+1) then t[tempC]='}' return tempC+1 else t[tempC-1]='}' return tempC end elseif check=='string' then t[tC]=sFormat("%q",v) return tC+1 elseif check=='number' then t[tC]=tostring(v) return tC+1 else t[tC]=v and 'true' or 'false' return tC+1 end end
 function serialize(v) local t={} local tC=1 local check = type(v) local intSerial=internalSerialize if check=='table' then t[tC]='{' tC=tC+1 local tempC=tC if #v==0 then for k,e in pairs(v) do if type(k)~='number' then t[tempC]=k t[tempC+1]='=' tempC=tempC+2 else t[tempC]='[' t[tempC+1]=k t[tempC+2]=']=' tempC=tempC+3 end tempC=intSerial(e,tempC,t) t[tempC]=',' tempC=tempC+1 end else for k,e in pairs(v) do tempC=intSerial(e,tempC,t) t[tempC]=',' tempC=tempC+1 end end if tempC==tC then t[tempC]='}' else t[tempC-1]='}' end elseif check=='string' then t[tC]=sFormat("%q",v) elseif check=='number' then t[tC]=tostring(v) else t[tC]=v and 'true' or 'false' end return concat(t) end
 function deserialize(s) local f=load('t='..s) f() return t end
 function spairs(a,b)local c={}for d in pairs(a)do c[#c+1]=d end;if b then table.sort(c,function(e,f)return b(a,e,f)end)else table.sort(c)end;local g=0;return function()g=g+1;if c[g]then return c[g],a[c[g]]end end end
 function tablelength(T) local count = 0 for _ in pairs(T) do count = count + 1 end return count end
 function convertFromHex(a)if a:sub(1,1)=="#"then a=a:sub(2,-1)end;if#a==8 then return tonumber("0x"..a:sub(1,2))/255,tonumber("0x"..a:sub(3,4))/255,tonumber("0x"..a:sub(5,6))/255,tonumber("0x"..a:sub(7,8))/255 elseif#a==6 then return tonumber("0x"..a:sub(1,2))/255,tonumber("0x"..a:sub(3,4))/255,tonumber("0x"..a:sub(5,6))/255,1 elseif#a==3 then return tonumber("0x"..a:sub(1,1))/15,tonumber("0x"..a:sub(2,2))/15,tonumber("0x"..a:sub(3,3))/15,1 else return 1,1,1,1 end end
 function mToKm(n,p)
+	if n == nil then return "nan" end
     if n >= 1000 then
         local rtn = utils.round((n / 1000),p) or utils.round((n / 1000))
-        return  rtn .. " km" 
+        return  rtn .. " km"
     else
         local rtn = utils.round(n,p) or utils.round(n)
         return rtn .. " m" end end
 function massConvert(n,p)
+	if n == nil then return "nan" end
     if n >= 1000 and n < 1000000 then
         local rtn = utils.round((n / 1000),p) or utils.round((n / 1000))
         return  rtn .. " t"
     elseif n >= 1000000 then
-            local rtn = utils.round((n / 1000000),p) or utils.round((n / 1000000))
-            return  rtn .. " kt" 
+		local rtn = utils.round((n / 1000000),p) or utils.round((n / 1000000))
+		return  rtn .. " kt"
     else
         local rtn = utils.round(n,p) or utils.round(n)
         return rtn .. " kg" end end
@@ -118,20 +120,19 @@ end
 if not elevAnimation then
     function elevAnimation()
         -- Elevator animation box
-        if stats.data ~= nil and config.floors ~= nil then
-            local boxHeight = utils.map(stats.data.elevation or 0,0,config.floors.floor1,ry - 65,100)
-            setNextFillColor(altSliderLayer, 0.2, 0.2, 0.2, 1)
-            setNextStrokeColor(altSliderLayer, 0.3, 0.0, 0.0, 1)
-            setNextStrokeWidth(altSliderLayer, 2)
-            addBoxRounded(altSliderLayer,rx/2 - 40,boxHeight,80,30,5)
-            setNextTextAlign(layer, AlignH_Center, AlignV_Middle)
-            local sx, sy = getTextBounds(font3, mToKm(tonumber(stats.data.elevation)))
-            addText(altSliderLayer,font3,mToKm(tonumber(stats.data.elevation)),rx/2 - sx/2,boxHeight + 20,80,30)
-            -- Elevator animation line
-            addLine(layer,rx/2,100,rx/2,ry - 30)
-            addLine(layer,rx/2-20,100,rx/2+20,100)
-            addLine(layer,rx/2-20,ry - 30,rx/2+20,ry - 30)
-        end
+        if not stats or not stats.data or not config.floors then return end
+		local boxHeight = utils.map(stats.data.elevation or 0,0,config.floors.floor1,ry - 65,100)
+		setNextFillColor(altSliderLayer, 0.2, 0.2, 0.2, 1)
+		setNextStrokeColor(altSliderLayer, 0.3, 0.0, 0.0, 1)
+		setNextStrokeWidth(altSliderLayer, 2)
+		addBoxRounded(altSliderLayer,rx/2 - 40,boxHeight,80,30,5)
+		setNextTextAlign(layer, AlignH_Center, AlignV_Middle)
+		local sx, sy = getTextBounds(font3, mToKm(tonumber(stats.data.elevation)))
+		addText(altSliderLayer,font3,mToKm(tonumber(stats.data.elevation)),rx/2 - sx/2,boxHeight + 20,80,30)
+		-- Elevator animation line
+		addLine(layer,rx/2,100,rx/2,ry - 30)
+		addLine(layer,rx/2-20,100,rx/2+20,100)
+		addLine(layer,rx/2-20,ry - 30,rx/2+20,ry - 30)
     end
 end
 
@@ -175,9 +176,9 @@ if not GenericButton then
                 cr = cr + 0.1
                 cg = cg + 0.1
                 cb = cb + 0.1
-                if click then 
+                if click then
                     if type(self.action) == "function" then
-                       self.action() 
+                       self.action()
                     end
                 end
                 --Click action
@@ -194,7 +195,7 @@ if not GenericButton then
             else
                 setNextFillColor(self.fLayer, 1, 1, 1, 1)
             end
-            
+
             setNextTextAlign(self.fLayer, AlignH_Center, AlignV_Middle)
             addText(self.fLayer, esFont, self.text1, self.x, self.y - 20)
             if config.estop then
@@ -242,7 +243,7 @@ if not ButtonQuad then
         local y0 = self.y - sy/2
         local x1 = x0 + sx
         local y1 = y0 + sy
-        
+
         local r, g, b = 0.7, 0.7, 0.7
         local cr, cg, cb, ca
         if self.color ~= nil then
@@ -263,7 +264,7 @@ if not ButtonQuad then
                     if type(self.action) == "function" then
                         self.action()
                     end
-                     
+
                 end
                 --Click action
             end
@@ -372,7 +373,6 @@ if not StatsLine then
     end
 
     function mt:draw()
-        
         setNextStrokeColor(layer, 1, 1, 1, 0.2)
         addLine(layer,self.x,self.y,self.x + self.width,self.y)
         setNextStrokeColor(layer, 1, 1, 1, 0.2)
@@ -429,7 +429,7 @@ if not DeviationInd then
         --ship box
         local box_r, box_g, box_b = 0.0, 0.5, 0.1
         local tri_r, tri_g, tri_b = 0.0, 0.5, 0.1
-        
+
         local box_x = self.x + (self.width / 2) - 25
         local box_y = self.y + (self.height /2) - 25
         local degrees = 0
@@ -441,7 +441,7 @@ if not DeviationInd then
                 --Box movement
                 box_x = box_x + utils.clamp((stats.data.deviationVec.x * 20),-65,65)
                 box_y = box_y - utils.clamp((stats.data.deviationVec.y * 20),-58,58)
-                
+
                 --Triangle color
                 tri_g = 1.0 - utils.map(utils.clamp(math.abs(stats.data.deviationRot.x), 0, 0.1),0,0.1,0,1)
                 tri_r = 0.0 + utils.map(utils.clamp(math.abs(stats.data.deviationRot.x), 0, 0.1),0,0.1,0,1)
@@ -453,15 +453,12 @@ if not DeviationInd then
         setNextStrokeWidth(statsLayer, 2)
         setNextRotationDegrees(statsLayer, degrees)
         addBoxRounded(statsLayer, box_x, box_y, 50,50,3)
-        
+
         setNextFillColor(statsLayer, tri_r, tri_g, tri_b, 1)
         setNextStrokeColor(statsLayer, 0, 0, 0, 1)
         setNextStrokeWidth(statsLayer, 1)
         setNextRotationDegrees(statsLayer, degrees)
-        addTriangle(statsLayer,box_x+25,box_y+15,
-                               box_x+10,box_y+35,
-                               box_x+40,box_y+35)
-
+        addTriangle(statsLayer,box_x+25,box_y+15, box_x+10,box_y+35, box_x+40,box_y+35)
     end
 end
 
@@ -497,7 +494,6 @@ if not rtbSettingsText then
             addText(settingsLayer, font, txtLines[i], rx/2, 200 + spacing)
             spacing = spacing + tsy + 5
         end
-
     end
 end
 
@@ -506,16 +502,15 @@ if not settingsText then
         local title = 'Coming Soon™'
         setNextTextAlign(settingsLayer, AlignH_Center, AlignV_Top)
         addText(settingsLayer, eStopFont, title, rx/2, ry/2)
-
     end
 end
 
 function drawFree (elems)
-    for i, v in ipairs(elems) do v:draw() end
+    for _, v in ipairs(elems) do v:draw() end
 end
 
 function drawListV (elems, x, y)
-    for i, v in ipairs(elems) do
+    for _, v in ipairs(elems) do
         local sx, sy = v:getSize()
         v:setPos(x, y)
         v:draw()
@@ -545,33 +540,40 @@ local eStopColor = '#7a0101'
 if config.manualControl then mcColor = '#3c00b3' end
 if config.estop then eStopColor = '#ff0000' end
 local buttons = {
-    ButtonQuad('RTB',                135, 135, function() config.targetAlt = config.rtb outputMsg = serialize(config) end,false,'#006603'),
-    ButtonQuad('+10m',               135, 185, function() 
-        if config.targetAlt == 0 then
-            config.targetAlt = stats.data.elevation + 10
+    ButtonQuad('RTB',   135, 135, function() config.targetAlt = config.rtb outputMsg = serialize(config) end,false,'#006603'),
+    ButtonQuad('+10m',  135, 185, function()
+        if not config.targetAlt or config.targetAlt == 0 then
+			config.delta = 10
         else
             config.targetAlt = config.targetAlt + 10
         end
-        outputMsg = serialize(config) 
-    end,false,'#0b0578'),
-    ButtonQuad('-10m',               135, 235, function() 
-        if config.targetAlt == 0 then
-            config.targetAlt = stats.data.elevation - 10
+        outputMsg = serialize(config)
+		config.delta = nil; end, false,'#0b0578'),
+    ButtonQuad('-10m',  135, 235, function()
+        if not config.targetAlt or config.targetAlt == 0 then
+			config.delta = -10
         else
             config.targetAlt = config.targetAlt - 10
         end
-        outputMsg = serialize(config) end,false,'#0b0578'),
-    ButtonQuad('Manual Control',     135, 285, function() config.manualControl = not config.manualControl config.targetAlt = 0 outputMsg = serialize(config) logMessage("Manual Control: "..outputMsg) end,false,mcColor),
-    GenericButton('Emergency', 'Stop', eStopFont, 135, 400, 185, 165, eStopColor, function() config.estop = not config.estop outputMsg = serialize(config) end),
+        outputMsg = serialize(config)
+		config.delta = nil; end, false,'#0b0578'),
+    ButtonQuad('Manual Control', 135, 285,
+		function() config.manualControl = not config.manualControl
+			config.targetAlt = 0; outputMsg = serialize(config)
+			logMessage("Manual Control: "..outputMsg) end,false,mcColor),
+    GenericButton('Emergency', 'Stop', eStopFont, 135, 400, 185, 165,
+		eStopColor, function() config.estop = not config.estop outputMsg = serialize(config) end),
     GenericButton('Set RTB','',font3,135,515,185,30,'#006960',function() config.setBaseActive = true end),
     GenericButton('Settings','',font3,360,515,185,30,'#006960',function() config.settingsActive = true end),
-    
 }
+
 local rtbButtons = {
-    ButtonQuad('Set Base',rx/2-112.5, ry-155, function() config.setBaseReq = true
-                                                         config.setBaseActive = false
-                                                         outputMsg = serialize(config) end,false,'#006603',settingsLayer),
-    ButtonQuad('Cancel',rx/2+112.5, ry-155, function() config.setBaseActive = false end,true,'#450101',settingsLayer),
+    ButtonQuad('Set Base',rx/2-112.5, ry-155,
+		function() config.setBaseReq = true config.setBaseActive = false outputMsg = serialize(config) end,
+		false,'#006603',settingsLayer),
+    ButtonQuad('Cancel',rx/2+112.5, ry-155,
+		function() config.setBaseActive = false end,
+		true,'#450101',settingsLayer),
 }
 
 --logMessage(stats.data.target)
@@ -589,24 +591,22 @@ if config.floors ~= nil then
         spacing = spacing + 50
     end
 end
+
 -- STATS
-
-
 local statYPos = ry/4.5 + 5
 local statSpacing = 22
 local statsDraw = {}
 
 if stats.data then
-        --StatsLine(key,value,x,y,width,height)
-        table.insert(statsDraw,StatsLine('Elevation',mToKm(stats.data.elevation, 0.001),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Velocity',utils.round((stats.data.velocity * 3.6), 0.01)..' km/h',585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Mass',massConvert(stats.data.mass,0.01),585,statYPos,  385,50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Gravity',utils.round(stats.data.gravity,0.001)..' m/s²',585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Target Altitude',mToKm(stats.data.target),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Target Distance',mToKm(stats.data.target_dist,0.001),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Brake Distance',mToKm(stats.data.brake_dist),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        table.insert(statsDraw,StatsLine('Deviation',utils.round(stats.data.deviation,0.00001)..' m',585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
-        
+	--StatsLine(key,value,x,y,width,height)
+	table.insert(statsDraw,StatsLine('Elevation',mToKm(stats.data.elevation, 0.001),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Velocity',utils.round((stats.data.velocity * 3.6), 0.01)..' km/h',585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Mass',massConvert(stats.data.mass,0.01),585,statYPos,  385,50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Gravity',utils.round(stats.data.gravity,0.001)..' m/s²',585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Target Altitude',mToKm(stats.data.target),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Target Distance',mToKm(stats.data.target_dist,0.001),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Brake Distance',mToKm(stats.data.brake_dist),585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
+	table.insert(statsDraw,StatsLine('Deviation',utils.round(stats.data.deviation,0.00001)..' m',585,statYPos, 385, 50)) statYPos = statYPos + statSpacing
 end
 
 local fgAtmo = {}
@@ -640,12 +640,12 @@ end
 if fuelSpace.tanks ~= nil and #fuelSpace.tanks > 0 then
     local aSpacing = 200
     if #fuelSpace.tanks < 10 then
-            local sSpacing = 200
-        	for k,v in spairs(fuelSpace.tanks) do
-                local fg = FuelGauge("", rx/1.8+315, topY + sSpacing, "space", v.tm, v.pct)
-                table.insert( fgSpace, fg )
-                sSpacing = sSpacing + 22
-            end
+		local sSpacing = 200
+		for k,v in spairs(fuelSpace.tanks) do
+			local fg = FuelGauge("", rx/1.8+315, topY + sSpacing, "space", v.tm, v.pct)
+			table.insert( fgSpace, fg )
+			sSpacing = sSpacing + 22
+		end
     else
         local lSpacing = aSpacing
         local rSpacing = aSpacing
