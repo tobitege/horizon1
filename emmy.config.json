@@ -1,0 +1,20 @@
+{
+  "source": [
+    {
+      "dir": "./",
+      "exclude": [".history"]
+    },
+    {
+      "dir": "./lua",
+      "exclude": []
+    },
+    {
+      "dir": "./libs",
+      "exclude": []
+    },
+    {
+      "dir": "./util",
+      "exclude": ["du-mocks"]
+    }
+  ]
+}
